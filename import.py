@@ -27,9 +27,13 @@ from matplotlib.finance import candlestick_ohlc
 
 def pandas_candlestick_ohlc(dat, stick="day", otherseries=None):
     """
-    :param dat: pandas DataFrame object with datetime64 index, and float columns "Open", "High", "Low", and "Close", likely created via DataReader from "yahoo"
-    :param stick: A string or number indicating the period of time covered by a single candlestick. Valid string inputs include "day", "week", "month", and "year", ("day" default), and any numeric input indicates the number of trading days included in a period
-    :param otherseries: An iterable that will be coerced into a list, containing the columns of dat that hold other series to be plotted as lines
+    :param dat: pandas DataFrame object with datetime64 index, and float columns "Open", "High", "Low", and "Close",
+    likely created via DataReader from "yahoo"
+    :param stick: A string or number indicating the period of time covered by a single candlestick.
+    Valid string inputs include "day", "week", "month", and "year", ("day" default),
+    and any numeric input indicates the number of trading days included in a period
+    :param otherseries: An iterable that will be coerced into a list, 
+    containing the columns of dat that hold other series to be plotted as lines
 
     This will show a Japanese candlestick plot for stock data stored in dat, also plotting other series if passed.
     """
@@ -114,3 +118,34 @@ def pandas_candlestick_ohlc(dat, stick="day", otherseries=None):
 
 
 pandas_candlestick_ohlc(apple)
+
+
+###Get stock data for some other tech companies and plot their adjusted close together.
+microsoft = web.DataReader("MSFT", "yahoo", start, end)
+google = web.DataReader("GOOG", "yahoo", start, end)
+
+# Below I create a DataFrame consisting of the adjusted closing price of these stocks,
+# first by making a list of these objects and using the join method
+stocks = pd.DataFrame({"AAPL": apple["Adj Close"],
+                       "MSFT": microsoft["Adj Close"],
+                       "GOOG": google["Adj Close"]})
+
+stocks.head()
+
+stocks.plot(grid = True)
+
+
+# df.apply(arg) will apply the function arg to each column in df, and return a DataFrame with the result
+# Recall that lambda x is an anonymous function accepting parameter x; in this case, x will be a pandas Series object
+stock_return = stocks.apply(lambda x: x / x[0])
+stock_return.head()
+
+stock_return.plot(grid = True).axhline(y = 1, color = "black", lw = 2)
+
+# Let's use NumPy's log function, though math's log function would work just as well
+stock_change = stocks.apply(lambda x: np.log(x) - np.log(x.shift(1)))  # shift moves dates back by 1.
+stock_change.head()
+
+stock_change.plot(grid = True).axhline(y = 0, color = "black", lw = 2)
+
+
